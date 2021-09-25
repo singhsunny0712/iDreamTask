@@ -4,23 +4,24 @@ const mongoose=require('mongoose');
 const User=mongoose.model("User")
 const Task=mongoose.model("Task")
 const bcrypt=require('bcryptjs');
+const requireLogin=require("../middleware/requireLogin")
 var jwt = require('jsonwebtoken');
 
 
 router.post('/addtask',(req,res)=>{
 
-    const {title,discription,userid,status}=req.body;
+    const {title,description,userid,status}=req.body;
 
-    if(!title || !discription || !userid || !status){
+    if(!title || !description || !userid || !status){
         return  res.status(422).json({error:"plase add the all the field"})
     }
 
-    console.log(title,discription,userid,status);
+    // console.log(title,description,userid,status);
 
     const task = new Task({
         userid,
         title,
-        discription,
+        description,
         status
 
     })
@@ -38,8 +39,9 @@ router.post('/addtask',(req,res)=>{
 })
 
 
-router.get('/alltask',(req,res)=>{
+router.get('/alltask',requireLogin,(req,res)=>{
 
+    // console.log("insode ")
     Task.find().populate('status').then(tasks=>{
         res.json({tasks});
     }).catch(err=>{
@@ -73,12 +75,12 @@ router.put('/statusupdate',(req,res)=>{
 
 router.put('/titleupdate',(req,res)=>{
 
-    const {title,taskid}=req.body;
+    const {updatetitle,taskid}=req.body;
 
-    console.log(title,taskid);
+    // console.log(updatetitle,taskid);
 
     Task.findByIdAndUpdate(taskid,
-        {title:title},
+        {title:updatetitle},
         
     {
         new:true
@@ -93,14 +95,14 @@ router.put('/titleupdate',(req,res)=>{
 })
 
 
-router.put('/disupdate',(req,res)=>{
+router.put('/desupdate',(req,res)=>{
 
-    const {discription,taskid}=req.body;
+    const {description,taskid}=req.body;
 
-    console.log(discription,taskid);
+    // console.log(description,taskid);
 
     Task.findByIdAndUpdate(taskid,
-        {discription:discription},
+        {description:description},
         
     {
         new:true

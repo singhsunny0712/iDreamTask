@@ -11,7 +11,7 @@ router.post('/signup',(req,res)=>{
     
     const {fullName,email,password}=req.body;
 
-    console.log(fullName,email,password);
+    // console.log(fullName,email,password);
     
     if(!email || !password || !fullName){
         return  res.status(422).json({error:"plase add the all the field"})

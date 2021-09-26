@@ -8,7 +8,7 @@ const requireLogin=require("../middleware/requireLogin")
 var jwt = require('jsonwebtoken');
 
 
-router.post('/addtask',(req,res)=>{
+router.post('/addtask',requireLogin,(req,res)=>{
 
     const {title,description,userid,status}=req.body;
 
@@ -51,7 +51,7 @@ router.get('/alltask',requireLogin,(req,res)=>{
 })
 
 
-router.put('/statusupdate',(req,res)=>{
+router.put('/statusupdate',requireLogin,(req,res)=>{
 
     const {status,taskid}=req.body;
 
@@ -73,7 +73,7 @@ router.put('/statusupdate',(req,res)=>{
 })
 
 
-router.put('/titleupdate',(req,res)=>{
+router.put('/titleupdate',requireLogin,(req,res)=>{
 
     const {updatetitle,taskid}=req.body;
 
@@ -95,7 +95,7 @@ router.put('/titleupdate',(req,res)=>{
 })
 
 
-router.put('/desupdate',(req,res)=>{
+router.put('/desupdate',requireLogin,(req,res)=>{
 
     const {description,taskid}=req.body;
 
@@ -114,6 +114,25 @@ router.put('/desupdate',(req,res)=>{
         }
     })
     
+})
+
+router.delete('/deletetask/:taskid',requireLogin,(req,res)=>{
+
+    // console.log(req.params.taskid);
+
+    Task.findOne({_id:req.params.taskid})
+    .exec((err,task)=>{
+        if(err || !task){
+            return res.status(422).json({error:err});
+        }
+        
+            task.remove()
+            .then(result=>{
+                res.json(result)
+            }).catch(err=>{
+                console.log(err);
+            })
+    })
 })
 
 

@@ -53,7 +53,7 @@ router.get('/alltask',requireLogin,(req,res)=>{
 
 router.put('/statusupdate',requireLogin,(req,res)=>{
 
-    const {status,taskid}=req.body;
+    // const {status,taskid}=req.body;
 
     console.log(status,taskid);
 

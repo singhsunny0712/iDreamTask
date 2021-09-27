@@ -1,39 +1,143 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from '@mui/material/DialogActions';
 import TextField from "@mui/material/TextField";
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Formik } from "formik";
 import * as yup from "yup";
+import Avatar from '@mui/material/Avatar';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import ListItemText from '@mui/material/ListItemText';
+import DialogTitle from '@mui/material/DialogTitle';
+import PersonIcon from '@mui/icons-material/Person';
+import AddIcon from '@mui/icons-material/Add';
+import Typography from '@mui/material/Typography';
+import { blue } from '@mui/material/colors';
 
 const validation_Schema = yup.object({
   title: yup.string().required("title is required"),
   description: yup.string().required("description is required"),
 });
 
-export default function BasicCard({ heading, id, taskData ,settaskData}) {
+export default function BasicCard({ heading, id, taskData, settaskData }) {
+
+  const tasks = ["Project", "In Progress", "Completed"];
+
   const [open, setOpen] = React.useState(false);
   const [open1, setOpen1] = React.useState(false);
   const [open2, setOpen2] = React.useState(false);
+  const [open3, setOpen3] = React.useState(false);
 
   const [editid, setid] = React.useState("");
   const [deleteid, setdeleteid] = React.useState("");
   const [editTitleData, setTitleData] = React.useState("");
   const [editDesData, setDesData] = React.useState("");
+  const [selectedValue, setSelectedValue] = React.useState("");
+  const [movetask, setmovetask] = React.useState("");
+
+  const handleClickOpen3 = (x) => {
+   
+    setmovetask(x._id)
+    setSelectedValue(x.status);
+    // console.log(x)
+    // console.log(x.status)
+    // console.log(movetask)
+    setOpen3(true);
+  };
+
+  const handleClose3 = () => {
+    setOpen3(false);
+  };
+
+  // --------------status update api call---------------------
+
+  async function statchangecall(){
+    
+
+    await fetch("/statusupdate", {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "iCareerD " + localStorage.getItem("jwt")
+      },
+      body: JSON.stringify({
+        status: selectedValue,
+        taskid: movetask,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          // M.toast({html: data.error,classes:"#c62828 red darken-3"})
+          console.log(data.error);
+        } else {
+
+          let newtaskData=taskData.map(item=>{
+            if(item._id===movetask){
+              item.status=selectedValue;
+            }
+            return item;
+          })
+      
+          // console.log(newtaskData);
+          settaskData(newtaskData)
+      
+          // console.log("----------------------");
+          
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+     
+  }
+
+  async function handleListItemClick3(value){
+
+    
+    // console.log(movetask)
+    //   console.log(selectedValue)
+
+    if(value==='move'){
+     
+      // console.log(movetask)
+      // console.log(selectedValue)
+      // console.log(taskData);
+
+       await statchangecall();
+      setOpen3(false);
+      return
+    }
+    
+    let moveStatus="1";
+    if(value==="Project"){
+      moveStatus="3"
+    }else if(value==="In Progress"){
+        moveStatus="2"
+    }
+
+      settaskData(taskData)
+    setSelectedValue(moveStatus);
+
+  };
 
   const handleClickOpen2 = (x) => {
     // console.log("first time true",x._id)
     setdeleteid(x._id);
     setOpen2(true);
   };
-  
+
   const handleClose2 = (flag) => {
-    if(flag==='Y'){
+    if (flag === 'Y') {
 
       // console.log(deleteid)
 
@@ -44,22 +148,22 @@ export default function BasicCard({ heading, id, taskData ,settaskData}) {
         }
       }).then(res => res.json())
         .then(result => {
-  
+
           // console.log(result);
           // console.log(taskData);
-          let filterData= taskData.filter(item=>item._id !== result._id)
+          let filterData = taskData.filter(item => item._id !== result._id)
           // console.log(filterData);
           settaskData(filterData)
           // console.log(taskData);
         }).catch(err => {
           console.log(err);
         })
-      
+
     }
     setOpen2(false);
     // console.log(flag);
     // console.log(open2);
-};
+  };
 
   const handleClickOpen = () => {
     // console.log(x)
@@ -101,7 +205,7 @@ export default function BasicCard({ heading, id, taskData ,settaskData}) {
         description: values.description,
         status: id,
       }),
-     })
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -118,10 +222,10 @@ export default function BasicCard({ heading, id, taskData ,settaskData}) {
         console.log(err);
       });
 
-     // taskData.push(values)
-     // console.log(taskData);
-     setOpen(false);
-     ////--------------------API Call --------------------------------------------------
+    // taskData.push(values)
+    // console.log(taskData);
+    setOpen(false);
+    ////--------------------API Call --------------------------------------------------
   }
 
   ///---------------api for edit --------------------------------------
@@ -188,7 +292,7 @@ export default function BasicCard({ heading, id, taskData ,settaskData}) {
 
   useEffect(() => {
     // console.log("test")
-  }, [open, open1,open2]);
+  }, [open, open1, open2]);
 
   return (
     <Card
@@ -272,29 +376,56 @@ export default function BasicCard({ heading, id, taskData ,settaskData}) {
                   edit
                 </button> */}
                 <div id='iconplace'>
-                   <h4 >{x.title}</h4>
-                   <IconButton aria-label="edit" size="small" onClick={() => handleClickOpen1(x)} id={x._id} >
-                     <EditIcon fontSize="inherit" />
-                   </IconButton>
-                   <IconButton aria-label="delete" size="small" onClick={() => handleClickOpen2(x)} id='deletebutton'>
-                     <DeleteIcon fontSize="inherit" />
-                   </IconButton>
-                   <Dialog
-                                                open={open2}
-                                                onClose={handleClose2}
-                                                aria-labelledby="alert-dialog-title"
-                                                aria-describedby="alert-dialog-description"
-                                                >
-                                                <div className="p-5">
-                                                <h1>Do you Want to Delete Task</h1>
-                                                <DialogActions>
-                                                <Button onClick={()=>handleClose2('Y')}>Yes</Button>
-                                                <Button onClick={()=>handleClose2('N')} autoFocus>
-                                                      No
-                                                </Button>
-                                                </DialogActions>
-                                                </div>
-                   </Dialog>
+                  <h4 >{x.title}</h4>
+                  <IconButton aria-label="edit" size="small" onClick={() => handleClickOpen1(x)} id={x._id} >
+                    <EditIcon fontSize="inherit" />
+                  </IconButton>
+                  <IconButton aria-label="delete" size="small" onClick={() => handleClickOpen2(x)} id='deletebutton'>
+                    <DeleteIcon fontSize="inherit" />
+                  </IconButton>
+                  <Dialog
+                    open={open2}
+                    onClose={handleClose2}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                  >
+                    <div className="p-5">
+                      <h1>Do you Want to Delete Task</h1>
+                      <DialogActions>
+                        <Button onClick={() => handleClose2('Y')}>Yes</Button>
+                        <Button onClick={() => handleClose2('N')} autoFocus>
+                          No
+                        </Button>
+                      </DialogActions>
+                    </div>
+                  </Dialog>
+                  <IconButton aria-label="remove" size="small" onClick={() => handleClickOpen3(x)} id='removebutton'>
+                    <RemoveCircleOutlineIcon fontSize="inherit" />
+                  </IconButton>
+                  <Dialog onClose={handleClose3} open={open3}>
+                    <DialogTitle>Do you want to move</DialogTitle>
+                    <List sx={{ pt: 0 }}>
+                      {tasks.map((task) => (
+                        <ListItem button onClick={() => handleListItemClick3(task)} key={task}>
+                          <ListItemAvatar>
+                            {/* <Avatar sx={{ bgcolor: blue[100], color: blue[600] }}>
+                              <PersonIcon />
+                            </Avatar> */}
+                          </ListItemAvatar>
+                          <ListItemText secondary={task} />
+                        </ListItem>
+                      ))}
+
+                      <ListItem autoFocus button onClick={() => handleListItemClick3('move')}>
+                        <ListItemAvatar>
+                          {/* <Avatar>
+                            <AddIcon />
+                          </Avatar> */}
+                        </ListItemAvatar>
+                        <ListItemText primary="Move" />
+                      </ListItem>
+                    </List>
+                  </Dialog>
                 </div>
                 <hr></hr>
                 {/* <br></br> */}
